@@ -16,37 +16,43 @@ let musicisti = [
     {id: 14, name: "Leonardo", instrument: "Batteria", mandatory: true},
     {id: 15, name: "Carlo", instrument: "Batteria", mandatory: true},
     {id: 16, name: "Mattia", instrument: "Batteria", mandatory: true},
+    {id: 17, name: "Lillo", instrument: "Triangolo", mandatory: true},
 ];
+
+let instrumentNotMandatary = ["Tastiera", "Triangolo"]
 
 function createObjInstruments(array){
     let objInstrument = {}
     array.forEach((el)=>{
-        // if(el.instrument in objInstrument){
-        //     objInstrument[el.instrument].push(el.name)
-        // } else {
-        //     objInstrument[el.instrument] = [el.name]
-        // }
         objInstrument[el.instrument]?.push(el.name) || (objInstrument[el.instrument] = [el.name])
     })
     return objInstrument
 }
 
-// console.table(createObjInstruments(musicisti))
+console.table(createObjInstruments(musicisti))
 
-function createGroups(obj, number){
-    console.log(obj)
-    let copy = {...obj}
+function createGroups(obj, number, NotMandatory){
+    let copy = structuredClone(obj)
+
+    for(let instrument in copy){
+        copy[`${instrument}Counter`] = 0;
+    }
+    
     let groups = [];
 
     for (let i = 0; i < number; i++) {
         let group = {name: `gruppo${i+1}`, members:[]}
         for(let instrument in copy ){
-            // console.log(copy[instrument].splice(copy[instrument[Math.round(Math.random()*(copy[instrument].length-1))]], 1))
-            group.members.push(copy[instrument].splice(copy[instrument[Math.round(Math.random()*copy[instrument].length-1)]], 1)[0])
-            if(copy[instrument].length == 0){
-                console.log(copy[instrument].length)
-                console.log(obj);
-                // copy[instrument] = [...test]
+
+            if(copy[instrument].length > 0){
+                group.members.push(copy[instrument].splice(Math.round(Math.random()*copy[instrument].length-1), 1)[0])
+                if(copy[instrument].length == 0 && copy[`${instrument}Counter`] < 3){
+                    copy[instrument] = [...obj[instrument]]
+                    copy[`${instrument}Counter`]++
+                }
+            } else if(copy[instrument].length == 0 && !NotMandatory.includes(instrument)){
+                console.log("Non si riescono a creare abbastanza gruppi")
+                return groups
             }
         }
         groups.push(group)
@@ -54,4 +60,4 @@ function createGroups(obj, number){
     return groups
 }
 
-console.log(createGroups(createObjInstruments(musicisti), 10))
+console.log(createGroups(createObjInstruments(musicisti), 10, instrumentNotMandatary))
