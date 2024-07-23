@@ -19,62 +19,83 @@ let musicisti = [
   { id: 17, name: "Lillo", instrument: "Triangolo", mandatory: true },
 ];
 
-let instrumentNotMandatary = ["Tastiera", "Triangolo"];
+let instrumentNotMandatory = ["Tastiera", "Triangolo"];
 
 function createObjInstruments(array) {
   let objInstrument = {};
   array.forEach((el) => {
-    objInstrument[el.instrument]?.push(el.name) ||
-      (objInstrument[el.instrument] = [el.name]);
+    objInstrument[el.instrument] = objInstrument[el.instrument] || [];
+    objInstrument[el.instrument].push(el.name);
   });
   return objInstrument;
 }
 
 console.table(createObjInstruments(musicisti));
 
-function createGroups(obj, number, NotMandatory) {
+function createGroups(obj, number, notMandatory) {
   let copy = structuredClone(obj);
-
-  console.log("copia");
-  console.log(copy);
+  let groups = [];
+  let nameMemberBands = [];
 
   for (let instrument in copy) {
     copy[`${instrument}Counter`] = 0;
   }
 
-  let groups = [];
-
   for (let i = 0; i < number; i++) {
-    let group = { name: `gruppo${i + 1}`, members: [] };
-    for (let instrument in copy) {
-      if (copy[instrument].length > 0) {
-        group.members.push(
-          copy[instrument].splice(
-            Math.round(Math.random() * copy[instrument].length - 1),
-            1
-          )[0]
-        );
-        if (copy[instrument].length == 0 && copy[`${instrument}Counter`] < 3) {
-          copy[instrument] = [...obj[instrument]];
-          copy[`${instrument}Counter`]++;
+    let group;
+    let isUnique = false;
+
+    do {
+      group = { members: [] };
+      let removedItems = [];
+      for (let instrument in copy) {
+        if (copy[instrument].length > 0) {
+          let index = Math.floor(Math.random() * copy[instrument].length);
+          let item = copy[instrument].splice(index, 1)[0];
+          group.members.push(item);
+          removedItems.push({ instrument, item });
+
+          if (copy[instrument].length === 0 && copy[`${instrument}Counter`] < 3) {
+            copy[instrument] = [...obj[instrument]];
+            copy[`${instrument}Counter`]++;
+          }
+        } else if (
+          copy[instrument].length === 0 &&
+          !notMandatory.includes(instrument)
+        ) {
+          console.log("Non si riescono a creare abbastanza gruppi");
+          return groups;
         }
-      } else if (
-        copy[instrument].length == 0 &&
-        !NotMandatory.includes(instrument)
-      ) {
-        console.log("Non si riescono a creare abbastanza gruppi");
-        return groups;
       }
-    }
+
+      let groupString = group.members.sort().join("");
+      isUnique = nameMemberBands.includes(groupString);
+      console.log(isUnique);
+      console.log(removedItems);
+      console.log(nameMemberBands);
+      
+      if (isUnique) {
+        removedItems.forEach(({ instrument, item }) => {
+          copy[instrument].push(item);
+        });
+      } else {
+        nameMemberBands.push(groupString);
+      }
+
+    } while (isUnique);
+
     groups.push(group);
   }
-   groups.sort(() => Math.random() - 0.5);
-   groups.forEach((band, i) => {
+
+  groups.sort(() => Math.random() - 0.5);
+  groups.forEach((band, i) => {
     band.name = `gruppo${i + 1}`;
   });
-    return groups;
+
+  console.log(nameMemberBands);
+  return groups;
 }
 
 console.log(
-  createGroups(createObjInstruments(musicisti), 7, instrumentNotMandatary)
+  createGroups(createObjInstruments(musicisti), 7, instrumentNotMandatory)
 );
